@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <title>Editable Table</title>
   <style>
+    /* Remove spinner from number input for Weight In Tons */
+    input.weight::-webkit-inner-spin-button,
+    input.weight::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input.weight {
+      -moz-appearance: textfield;
+    }
+
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -99,13 +109,30 @@
       color: red;
       font-weight: bold;
       cursor: pointer;
+    
     }
 
-    .add-row-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-weight: bold;
-    }
+.add-row-btn {
+  display: inline-block;
+  padding: 8px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap; /* Prevent text from breaking into two lines */
+  min-width: 60px;     /* Ensure enough width for text */
+  transition: background 0.3s ease;
+}
+
+.add-row-btn:hover {
+  background-color: #45a049;
+}
+
+
   </style>
 </head>
 <body>
@@ -116,12 +143,15 @@
         <th>Date</th>
         <th>Vehicle No / Driver</th>
         <th>Location</th>
-        <th>Weight</th>
-        <th>Rate</th>
+        <th>Weight In Tons</th>
+        <th>Rate Per Ton</th>
         <th>Amount</th>
-        <th>Deductions (Manual)</th>
+        <th>Deductions</th>
         <th>Final</th>
-        <th>Delete</th>
+<th style="text-align:center; vertical-align:middle;">
+  <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
+</th>
+
       </tr>
     </thead>
     <tbody>
@@ -129,7 +159,7 @@
         <td><input type="date" /></td>
         <td><input type="text" /></td>
         <td><input type="text" /></td>
-        <td><input type="number" class="weight" oninput="updateAmount(this)" /></td>
+        <td><input type="text" class="weight" oninput="updateWeightDisplay(this)" /></td>
         <td><input type="number" class="rate" oninput="updateAmount(this)" /></td>
         <td><input type="number" class="amount" readonly /></td>
         <td>
@@ -147,179 +177,186 @@
     </tbody>
   </table>
 
-  <button class="add-row-btn" onclick="addRow()">Add Row</button>
-
   <script>
-  function updateAmount(input) {
-    const row = input.closest("tr");
-    const weight = parseFloat(row.querySelector(".weight").value) || 0;
-    const rate = parseFloat(row.querySelector(".rate").value) || 0;
-    const amount = weight * rate;
-    row.querySelector(".amount").value = amount.toFixed(2);
-    updateFinal(row);
-  }
+    function updateAmount(input) {
+      const row = input.closest("tr");
+      let weightRaw = row.querySelector(".weight").value || "";
+      let weightPart = weightRaw.includes("/") 
+          ? weightRaw.split("/")[0].trim() 
+          : weightRaw.trim();
+      let weight = parseFloat(weightPart) || 0;
+      const rate = parseFloat(row.querySelector(".rate").value) || 0;
+      const amount = weight * rate;
+      row.querySelector(".amount").value = amount.toFixed(2);
+      let totalDeductions = 0;
+      row.querySelectorAll(".deduction-chip").forEach(chip => {
+        const value = chip.getAttribute("data-value") || "";
+        const match = value.match(/=\s*(\d+(\.\d+)?)/);
+        if (match) {
+          totalDeductions += parseFloat(match[1]) || 0;
+        }
+      });
+      const final = amount - totalDeductions;
+      row.querySelector(".final").value = final.toFixed(2);
+    }
 
-  function updateFinal(row) {
-    const amount = parseFloat(row.querySelector(".amount").value) || 0;
-    let totalDeductions = 0;
-    row.querySelectorAll(".deduction-chip").forEach(chip => {
-      const value = chip.getAttribute("data-value");
-      const parts = value.split(" ");
-      const deductionAmount = parseFloat(parts[1]) || 0;
-      totalDeductions += deductionAmount;
-    });
-    const final = amount - totalDeductions;
-    row.querySelector(".final").value = final.toFixed(2);
-  }
+    function updateWeightDisplay(input) {
+      updateAmount(input);
+    }
 
-  function handleDeductionKey(event) {
-    const input = event.target;
-    const wrapper = input.closest(".deduction-wrapper");
-    const container = wrapper.querySelector(".deduction-container");
+    function updateFinal(row) {
+      const amount = parseFloat(row.querySelector(".amount").value) || 0;
+      let totalDeductions = 0;
+      row.querySelectorAll(".deduction-chip").forEach(chip => {
+        const value = chip.getAttribute("data-value");
+        const match = value.match(/=\s*(\d+(\.\d+)?)/);
+        if (match) {
+          totalDeductions += parseFloat(match[1]) || 0;
+        }
+      });
+      const final = amount - totalDeductions;
+      row.querySelector(".final").value = final.toFixed(2);
+    }
 
-    if (event.key === "Enter" && input.value.trim() !== "") {
-      event.preventDefault();
-      const text = input.value.trim().toUpperCase();
+    function handleDeductionKey(event) {
+      const input = event.target;
+      const wrapper = input.closest(".deduction-wrapper");
+      const container = wrapper.querySelector(".deduction-container");
+      if (event.key === "Enter" && input.value.trim() !== "") {
+        event.preventDefault();
+        const text = input.value.trim().toUpperCase();
+        const match = text.match(/^.+=\s*(\d+(\.\d+)?)$/);
+        if (!match) {
+          alert("Please enter in format: LABEL ANYTEXT = NUMBER (e.g., SORTAGE 100KG = 1200)");
+          return;
+        }
+        const exists = [...container.querySelectorAll('.deduction-chip')].some(chip =>
+          chip.getAttribute("data-value") === text
+        );
+        if (!exists) {
+          input.value = "";
+          addDeductionChip(container, text);
+          container.style.display = "block";
+        }
+      }
+    }
 
-      // Only allow if text contains a number
-      if (!/\d+/.test(text)) {
-        alert("Please enter a valid deduction with a number (e.g., TDS 500)");
+    function addDeductionChip(container, text) {
+      const chip = document.createElement("div");
+      chip.className = "deduction-chip";
+      chip.setAttribute("data-value", text);
+      const span = document.createElement("span");
+      span.textContent = text;
+      span.style.cursor = "pointer";
+      span.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = span.textContent;
+        input.style.width = "100%";
+        input.style.fontSize = "14px";
+        input.style.textTransform = "uppercase";
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            updateChipValue(chip, input.value);
+          }
+        });
+        input.addEventListener("blur", () => {
+          updateChipValue(chip, input.value);
+        });
+        chip.replaceChild(input, span);
+        input.focus();
+      });
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-deduction-btn";
+      deleteBtn.innerHTML = "❌";
+      deleteBtn.onclick = () => {
+        chip.remove();
+        updateFinal(container.closest("tr"));
+      };
+      chip.appendChild(span);
+      chip.appendChild(deleteBtn);
+      container.appendChild(chip);
+      updateFinal(container.closest("tr"));
+    }
+
+    function updateChipValue(chip, newValue) {
+      newValue = newValue.trim().toUpperCase();
+      const match = newValue.match(/^.+=\s*(\d+(\.\d+)?)$/);
+      if (!match) {
+        alert("Please enter in format: LABEL ANYTEXT = NUMBER (e.g., SORTAGE 100KG = 1200)");
         return;
       }
-
-      const exists = [...container.querySelectorAll('.deduction-chip')].some(chip =>
-        chip.getAttribute("data-value") === text
-      );
-      if (!exists) {
-        input.value = "";
-        addDeductionChip(container, text);
-        container.style.display = "block";
-      }
-    }
-  }
-
-  function addDeductionChip(container, text) {
-    const chip = document.createElement("div");
-    chip.className = "deduction-chip";
-    chip.setAttribute("data-value", text);
-
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.style.cursor = "pointer";
-
-    span.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = span.textContent;
-      input.style.width = "100%";
-      input.style.fontSize = "14px";
-      input.style.textTransform = "uppercase";
-
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
+      chip.setAttribute("data-value", newValue);
+      const newSpan = document.createElement("span");
+      newSpan.textContent = newValue;
+      newSpan.style.cursor = "pointer";
+      newSpan.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = newSpan.textContent;
+        input.style.width = "100%";
+        input.style.fontSize = "14px";
+        input.style.textTransform = "uppercase";
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            updateChipValue(chip, input.value);
+          }
+        });
+        input.addEventListener("blur", () => {
           updateChipValue(chip, input.value);
-        }
+        });
+        chip.replaceChild(input, newSpan);
+        input.focus();
       });
-
-      input.addEventListener("blur", () => {
-        updateChipValue(chip, input.value);
-      });
-
-      chip.replaceChild(input, span);
-      input.focus();
-    });
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-deduction-btn";
-    deleteBtn.innerHTML = "❌";
-    deleteBtn.onclick = () => {
-      chip.remove();
-      updateFinal(container.closest("tr"));
-    };
-
-    chip.appendChild(span);
-    chip.appendChild(deleteBtn);
-    container.appendChild(chip);
-    updateFinal(container.closest("tr"));
-  }
-
-  function updateChipValue(chip, newValue) {
-    newValue = newValue.trim().toUpperCase();
-
-    // Only allow if newValue contains a number
-    if (!/\d+/.test(newValue)) {
-      alert("Please enter a valid deduction with a number (e.g., FINE 200)");
-      return;
+      chip.replaceChild(newSpan, chip.firstChild);
+      updateFinal(chip.closest("tr"));
     }
 
-    chip.setAttribute("data-value", newValue);
-
-    const newSpan = document.createElement("span");
-    newSpan.textContent = newValue;
-    newSpan.style.cursor = "pointer";
-
-    newSpan.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = newSpan.textContent;
-      input.style.width = "100%";
-      input.style.fontSize = "14px";
-      input.style.textTransform = "uppercase";
-
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          updateChipValue(chip, input.value);
-        }
-      });
-
-      input.addEventListener("blur", () => {
-        updateChipValue(chip, input.value);
-      });
-
-      chip.replaceChild(input, newSpan);
-      input.focus();
-    });
-
-    chip.replaceChild(newSpan, chip.firstChild);
-    updateFinal(chip.closest("tr"));
-  }
-
-  function toggleDeductionList(button) {
-    const container = button.closest(".deduction-wrapper").querySelector(".deduction-container");
-    container.style.display = container.style.display === "block" ? "none" : "block";
-  }
-
-  function addRow() {
-    const table = document.getElementById("editableTable").querySelector("tbody");
-    const firstRow = table.rows[0];
-    const newRow = firstRow.cloneNode(true);
-
-    newRow.querySelectorAll("input").forEach(input => {
-      input.value = "";
-    });
-
-    newRow.querySelector(".deduction-wrapper").innerHTML = `
-      <div class="deduction-input-group">
-        <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
-        <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
-      </div>
-      <div class="deduction-container"></div>
-    `;
-
-    table.appendChild(newRow);
-  }
-
-  function deleteRow(button) {
-    const row = button.closest("tr");
-    const table = document.getElementById("editableTable").querySelector("tbody");
-    if (table.rows.length > 1) {
-      table.removeChild(row);
+    function toggleDeductionList(button) {
+      const container = button.closest(".deduction-wrapper").querySelector(".deduction-container");
+      container.style.display = container.style.display === "block" ? "none" : "block";
     }
-  }
-</script>
 
+    function addRow() {
+  const table = document.getElementById("editableTable").querySelector("tbody");
+  const firstRow = table.rows[0];
+  const newRow = firstRow.cloneNode(true);
+
+  // Clear all inputs
+  newRow.querySelectorAll("input").forEach(input => {
+    input.value = "";
+  });
+
+  // Reset deductions
+  newRow.querySelector(".deduction-wrapper").innerHTML = `
+    <div class="deduction-input-group">
+      <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
+      <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+    </div>
+    <div class="deduction-container"></div>
+  `;
+
+  // Fix delete button binding
+  let deleteBtn = newRow.querySelector(".delete-row-btn");
+  deleteBtn.onclick = function () {
+    deleteRow(this);
+  };
+
+  // Insert at the top
+  table.insertBefore(newRow, table.firstChild);
+}
+
+function deleteRow(button) {
+  const row = button.closest("tr");
+  const table = document.getElementById("editableTable").querySelector("tbody");
+  if (table.rows.length > 1) {
+    table.removeChild(row);
+  }
+}
+
+  </script>
 
 </body>
 </html>
