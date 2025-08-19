@@ -23,6 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # path('', views.entry_view, name='entry_form'),
     path('', views.hisab_table_view, name='hisab_table'),
-
-
+    path('autosave/', views.autosave_entry, name='autosave_entry'),
+    path('delete-entry/', views.delete_entry, name='delete_entry'),
 ]

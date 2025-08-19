@@ -6,7 +6,9 @@
   <style>
     /* Remove spinner from number input for Weight In Tons */
     input.weight::-webkit-inner-spin-button,
-    input.weight::-webkit-outer-spin-button {
+    input.weight::-webkit-outer-spin-button,
+    input.rate::-webkit-inner-spin-button,
+    input.rate::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
@@ -156,99 +158,94 @@
     </thead>
     <tbody>
       <tr>
-        <td><input type="date" /></td>
-        <td><input type="text" /></td>
-        <td><input type="text" /></td>
-        <td><input type="text" class="weight" oninput="updateWeightDisplay(this)" /></td>
-        <td><input type="number" class="rate" oninput="updateAmount(this)" /></td>
-        <td><input type="number" class="amount" readonly /></td>
-        <td>
-          <div class="deduction-wrapper">
-            <div class="deduction-input-group">
-              <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
-              <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
-            </div>
-            <div class="deduction-container"></div>
-          </div>
-        </td>
-        <td><input type="number" class="final" readonly /></td>
-        <td><button class="delete-row-btn" onclick="deleteRow(this)">X</button></td>
-      </tr>
+  <td><input type="date" /></td>
+  <td><input type="text" class="truck_number" /></td>
+  <td><input type="text" class="location" /></td>
+  <td><input type="text" class="weight" oninput="updateWeightDisplay(this)" /></td>
+  <td><input type="number" class="rate" oninput="updateAmount(this)" /></td>
+  <td><input type="number" class="amount" readonly /></td>
+  <td>
+    <div class="deduction-wrapper">
+      <div class="deduction-input-group">
+        <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
+        <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+      </div>
+      <div class="deduction-container"></div>
+    </div>
+  </td>
+  <td><input type="number" class="final" readonly /></td>
+  <td><button class="delete-row-btn" onclick="deleteRow(this)">X</button></td>
+</tr>
+
     </tbody>
   </table>
 
   <script>
-    function updateAmount(input) {
-      const row = input.closest("tr");
-      let weightRaw = row.querySelector(".weight").value || "";
-      let weightPart = weightRaw.includes("/") 
-          ? weightRaw.split("/")[0].trim() 
-          : weightRaw.trim();
-      let weight = parseFloat(weightPart) || 0;
-      const rate = parseFloat(row.querySelector(".rate").value) || 0;
-      const amount = weight * rate;
-      row.querySelector(".amount").value = amount.toFixed(2);
-      let totalDeductions = 0;
-      row.querySelectorAll(".deduction-chip").forEach(chip => {
-        const value = chip.getAttribute("data-value") || "";
-        const match = value.match(/=\s*(\d+(\.\d+)?)/);
-        if (match) {
-          totalDeductions += parseFloat(match[1]) || 0;
-        }
-      });
-      const final = amount - totalDeductions;
-      row.querySelector(".final").value = final.toFixed(2);
-    }
+function updateAmount(input) {
+    const row = input.closest("tr");
+    let weightRaw = row.querySelector(".weight").value || "";
+    let weightPart = weightRaw.includes("/") 
+        ? weightRaw.split("/")[0].trim() 
+        : weightRaw.trim();
+    let weight = parseFloat(weightPart) || 0;
 
-    function updateWeightDisplay(input) {
-      updateAmount(input);
-    }
+    const rate = parseFloat(row.querySelector(".rate").value) || 0;
+    const amount = weight * rate;
+    row.querySelector(".amount").value = amount.toFixed(2);
 
-    function updateFinal(row) {
-      const amount = parseFloat(row.querySelector(".amount").value) || 0;
-      let totalDeductions = 0;
-      row.querySelectorAll(".deduction-chip").forEach(chip => {
+    updateFinal(row);
+    autoSave(row);
+}
+
+function updateWeightDisplay(input) {
+    updateAmount(input);
+}
+
+function updateFinal(row) {
+    const amount = parseFloat(row.querySelector(".amount").value) || 0;
+    let totalDeductions = 0;
+    row.querySelectorAll(".deduction-chip").forEach(chip => {
         const value = chip.getAttribute("data-value");
         const match = value.match(/=\s*(\d+(\.\d+)?)/);
-        if (match) {
-          totalDeductions += parseFloat(match[1]) || 0;
-        }
-      });
-      const final = amount - totalDeductions;
-      row.querySelector(".final").value = final.toFixed(2);
-    }
+        if (match) totalDeductions += parseFloat(match[1]) || 0;
+    });
+    const final = amount - totalDeductions;
+    row.querySelector(".final").value = final.toFixed(2);
+}
 
-    function handleDeductionKey(event) {
-      const input = event.target;
-      const wrapper = input.closest(".deduction-wrapper");
-      const container = wrapper.querySelector(".deduction-container");
-      if (event.key === "Enter" && input.value.trim() !== "") {
+function handleDeductionKey(event) {
+    const input = event.target;
+    const wrapper = input.closest(".deduction-wrapper");
+    const container = wrapper.querySelector(".deduction-container");
+
+    if (event.key === "Enter" && input.value.trim() !== "") {
         event.preventDefault();
         const text = input.value.trim().toUpperCase();
         const match = text.match(/^.+=\s*(\d+(\.\d+)?)$/);
         if (!match) {
-          alert("Please enter in format: LABEL ANYTEXT = NUMBER (e.g., SORTAGE 100KG = 1200)");
-          return;
+            alert("Please enter in format: LABEL ANYTEXT = NUMBER (e.g., SORTAGE 100KG = 1200)");
+            return;
         }
         const exists = [...container.querySelectorAll('.deduction-chip')].some(chip =>
-          chip.getAttribute("data-value") === text
+            chip.getAttribute("data-value") === text
         );
         if (!exists) {
-          input.value = "";
-          addDeductionChip(container, text);
-          container.style.display = "block";
+            input.value = "";
+            addDeductionChip(container, text);
+            container.style.display = "block";
         }
-      }
     }
+}
 
-    function addDeductionChip(container, text) {
-      const chip = document.createElement("div");
-      chip.className = "deduction-chip";
-      chip.setAttribute("data-value", text);
-      const span = document.createElement("span");
-      span.textContent = text;
-      span.style.cursor = "pointer";
-      span.addEventListener("click", () => {
+function addDeductionChip(container, text) {
+    const chip = document.createElement("div");
+    chip.className = "deduction-chip";
+    chip.setAttribute("data-value", text);
+
+    const span = document.createElement("span");
+    span.textContent = text;
+    span.style.cursor = "pointer";
+    span.addEventListener("click", () => {
         const input = document.createElement("input");
         input.type = "text";
         input.value = span.textContent;
@@ -256,42 +253,47 @@
         input.style.fontSize = "14px";
         input.style.textTransform = "uppercase";
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            updateChipValue(chip, input.value);
-          }
+            if (e.key === "Enter") {
+                e.preventDefault();
+                updateChipValue(chip, input.value);
+            }
         });
         input.addEventListener("blur", () => {
-          updateChipValue(chip, input.value);
+            updateChipValue(chip, input.value);
         });
         chip.replaceChild(input, span);
         input.focus();
-      });
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete-deduction-btn";
-      deleteBtn.innerHTML = "❌";
-      deleteBtn.onclick = () => {
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-deduction-btn";
+    deleteBtn.innerHTML = "❌";
+    deleteBtn.onclick = () => {
         chip.remove();
         updateFinal(container.closest("tr"));
-      };
-      chip.appendChild(span);
-      chip.appendChild(deleteBtn);
-      container.appendChild(chip);
-      updateFinal(container.closest("tr"));
-    }
+        autoSave(container.closest("tr"));
+    };
 
-    function updateChipValue(chip, newValue) {
-      newValue = newValue.trim().toUpperCase();
-      const match = newValue.match(/^.+=\s*(\d+(\.\d+)?)$/);
-      if (!match) {
+    chip.appendChild(span);
+    chip.appendChild(deleteBtn);
+    container.appendChild(chip);
+    updateFinal(container.closest("tr"));
+    autoSave(container.closest("tr"));
+}
+
+function updateChipValue(chip, newValue) {
+    newValue = newValue.trim().toUpperCase();
+    const match = newValue.match(/^.+=\s*(\d+(\.\d+)?)$/);
+    if (!match) {
         alert("Please enter in format: LABEL ANYTEXT = NUMBER (e.g., SORTAGE 100KG = 1200)");
         return;
-      }
-      chip.setAttribute("data-value", newValue);
-      const newSpan = document.createElement("span");
-      newSpan.textContent = newValue;
-      newSpan.style.cursor = "pointer";
-      newSpan.addEventListener("click", () => {
+    }
+    chip.setAttribute("data-value", newValue);
+
+    const newSpan = document.createElement("span");
+    newSpan.textContent = newValue;
+    newSpan.style.cursor = "pointer";
+    newSpan.addEventListener("click", () => {
         const input = document.createElement("input");
         input.type = "text";
         input.value = newSpan.textContent;
@@ -299,64 +301,162 @@
         input.style.fontSize = "14px";
         input.style.textTransform = "uppercase";
         input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            updateChipValue(chip, input.value);
-          }
+            if (e.key === "Enter") {
+                e.preventDefault();
+                updateChipValue(chip, input.value);
+            }
         });
         input.addEventListener("blur", () => {
-          updateChipValue(chip, input.value);
+            updateChipValue(chip, input.value);
         });
         chip.replaceChild(input, newSpan);
         input.focus();
-      });
-      chip.replaceChild(newSpan, chip.firstChild);
-      updateFinal(chip.closest("tr"));
-    }
+    });
 
-    function toggleDeductionList(button) {
-      const container = button.closest(".deduction-wrapper").querySelector(".deduction-container");
-      container.style.display = container.style.display === "block" ? "none" : "block";
-    }
-
-    function addRow() {
-  const table = document.getElementById("editableTable").querySelector("tbody");
-  const firstRow = table.rows[0];
-  const newRow = firstRow.cloneNode(true);
-
-  // Clear all inputs
-  newRow.querySelectorAll("input").forEach(input => {
-    input.value = "";
-  });
-
-  // Reset deductions
-  newRow.querySelector(".deduction-wrapper").innerHTML = `
-    <div class="deduction-input-group">
-      <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
-      <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
-    </div>
-    <div class="deduction-container"></div>
-  `;
-
-  // Fix delete button binding
-  let deleteBtn = newRow.querySelector(".delete-row-btn");
-  deleteBtn.onclick = function () {
-    deleteRow(this);
-  };
-
-  // Insert at the top
-  table.insertBefore(newRow, table.firstChild);
+    chip.replaceChild(newSpan, chip.firstChild);
+    updateFinal(chip.closest("tr"));
+    autoSave(chip.closest("tr"));
 }
 
-function deleteRow(button) {
-  const row = button.closest("tr");
-  const table = document.getElementById("editableTable").querySelector("tbody");
-  if (table.rows.length > 1) {
-    table.removeChild(row);
-  }
+function toggleDeductionList(button) {
+    const container = button.closest(".deduction-wrapper").querySelector(".deduction-container");
+    container.style.display = container.style.display === "block" ? "none" : "block";
 }
 
-  </script>
+function addRow() {
+    const table = document.getElementById("editableTable").querySelector("tbody");
+    const firstRow = table.rows[0];
+    const newRow = firstRow.cloneNode(true);
+
+    // Clear all inputs
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+
+    // Reset deductions
+    newRow.querySelector(".deduction-wrapper").innerHTML = `
+        <div class="deduction-input-group">
+            <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
+            <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+        </div>
+        <div class="deduction-container"></div>
+    `;
+
+    newRow.removeAttribute("data-id"); // reset row ID
+
+    // Fix delete button binding
+    newRow.querySelector(".delete-row-btn").onclick = function () {
+        deleteRow(this);
+    };
+
+    // Bind change listeners for auto save
+    newRow.querySelectorAll("input").forEach(input => {
+        input.addEventListener("change", function () {
+            autoSave(this.closest("tr"));
+        });
+    });
+
+    table.insertBefore(newRow, table.firstChild);
+}
+
+function deleteRow(row) {
+    const tr = row.closest("tr");
+    const entryId = tr.getAttribute("data-id");
+
+    // If this row has an ID, call backend to delete it
+    if (entryId) {
+        fetch("/delete-entry/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken") // Django CSRF token
+            },
+            body: JSON.stringify({ id: entryId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                tr.remove(); // Remove from UI only if deleted from DB
+            } else {
+                alert("Error deleting entry from database");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    } else {
+        // If no ID (unsaved row), just remove it
+        tr.remove();
+    }
+}
+
+
+function autoSave(row) {
+    const entryId = row.dataset.id;
+
+    const vehicleDriver = row.querySelector(".truck_number")?.value.trim();
+    const location = row.querySelector(".location")?.value.trim();
+
+    // 🔑 Don’t save unless required fields are filled
+    if (!vehicleDriver || !location) {
+        console.log("Skipping autosave, required fields empty");
+        return;
+    }
+
+    const data = {
+        id: entryId,
+        date: row.querySelector('input[type="date"]').value,
+        vehicle_driver: vehicleDriver,
+        location: location,
+        weight_tons: parseFloat(row.querySelector(".weight").value) || 0,
+        rate_per_ton: parseFloat(row.querySelector(".rate").value) || 0,
+        amount: parseFloat(row.querySelector(".amount").value) || 0,
+        final_amount: parseFloat(row.querySelector(".final").value) || 0,
+        deductions: JSON.stringify(
+            Array.from(row.querySelectorAll(".deduction-chip")).map(chip => chip.dataset.value)
+        ),
+    };
+
+    fetch("/autosave/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify(data),
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.success && result.id) {
+            row.dataset.id = result.id; // attach DB id to row
+        }
+    })
+    .catch(err => console.error("Autosave error:", err));
+}
+
+
+// Helper to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Attach auto-save listeners for initial row
+document.querySelectorAll("#editableTable tbody tr input").forEach(input => {
+    input.addEventListener("change", function () {
+        autoSave(this.closest("tr"));
+    });
+});
+</script>
+
 
 </body>
 </html>
+
+<!-- select * from hisab_app_transportentry  -->
