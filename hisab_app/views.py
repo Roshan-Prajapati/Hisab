@@ -18,7 +18,9 @@ from datetime import datetime
 
 
 def hisab_table_view(request):
-    return render(request, 'hisab_table.html')
+    entries = TransportEntry.objects.all()
+    return render(request, 'hisab_table.html', {"entries": entries})
+
 
 @csrf_exempt
 def autosave_entry(request):
@@ -30,11 +32,20 @@ def autosave_entry(request):
             date = data.get("date")
             vehicle_driver = data.get("vehicle_driver", "").strip()
             location = data.get("location", "").strip()
-            weight_tons = float(data.get("weight_tons") or 0)
-            rate_per_ton = float(data.get("rate_per_ton") or 0)
-            amount = float(data.get("amount") or 0)
+            weight_tons = data.get("weight_tons", "").strip()   # ✅ keep as string
+            try:
+                rate_per_ton = float(data.get("rate_per_ton") or 0)
+            except ValueError:
+                rate_per_ton = 0
+            try:
+                amount = float(data.get("amount") or 0)
+            except ValueError:
+                amount = 0
             deductions = data.get("deductions", "[]")  # JSON string from frontend
-            final_amount = float(data.get("final_amount") or 0)
+            try:
+                final_amount = float(data.get("final_amount") or 0)
+            except ValueError:
+                final_amount = 0
 
             # Parse date if provided
             if date:
@@ -69,6 +80,7 @@ def autosave_entry(request):
             return JsonResponse({"success": True, "id": entry.id})
 
         except Exception as e:
+            print("Autosave error:", e)  # Add this line for debugging
             return JsonResponse({"success": False, "error": str(e)}, status=400)
 
     return JsonResponse({"success": False, "message": "Invalid request"}, status=400)
