@@ -1,3 +1,51 @@
+/* ---------------- Filter Section ---------------- */
+function applyFilters() {
+    const dateVal = document.getElementById("filter-date").value;
+    const vehicleVal = document.getElementById("filter-vehicle").value.trim().toLowerCase();
+    const locationVal = document.getElementById("filter-location").value.trim().toLowerCase();
+
+    const rows = Array.from(document.querySelectorAll("#hisab-table-body tr"));
+
+    // Filter rows
+    rows.forEach(row => {
+        const dateInput = row.querySelector('input[type="date"]');
+        const vehicleInput = row.querySelector('.truck_number');
+        const locationInput = row.querySelector('.location');
+
+        let show = true;
+
+        if (dateVal && dateInput && dateInput.value !== dateVal) show = false;
+        if (vehicleVal && vehicleInput && !vehicleInput.value.toLowerCase().includes(vehicleVal)) show = false;
+        if (locationVal && locationInput && !locationInput.value.toLowerCase().includes(locationVal)) show = false;
+
+        row.style.display = show ? "" : "none";
+    });
+
+    // Sort visible rows by date descending
+    const visibleRows = rows.filter(row => row.style.display !== "none");
+    visibleRows.sort((a, b) => {
+        const dateA = a.querySelector('input[type="date"]')?.value || "";
+        const dateB = b.querySelector('input[type="date"]')?.value || "";
+        // Empty dates go last
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        // Compare as YYYY-MM-DD strings (descending)
+        return dateA < dateB ? 1 : dateA > dateB ? -1 : 0;
+    });
+
+    // Re-append sorted visible rows at the top of tbody
+    const tbody = document.getElementById("hisab-table-body");
+    visibleRows.forEach(row => tbody.appendChild(row));
+}
+
+function clearFilters() {
+    document.getElementById("filter-date").value = "";
+    document.getElementById("filter-vehicle").value = "";
+    document.getElementById("filter-location").value = "";
+    applyFilters();
+}
+
 /* ---------------- Amount Calculation ---------------- */
 function updateAmount(input) {
     const row = input.closest("tr");

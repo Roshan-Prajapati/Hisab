@@ -1,0 +1,215 @@
+
+    /* Remove spinner from number input for Weight In Tons */
+    input.weight::-webkit-inner-spin-button,
+    input.weight::-webkit-outer-spin-button,
+    input.rate::-webkit-inner-spin-button,
+    input.rate::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input.weight {
+      -moz-appearance: textfield;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header img {
+      max-width: 150px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .header h1 {
+      font-family: 'Archivo Black', sans-serif;
+      margin-top: 10px;
+      font-size: 40px;
+      font-weight: bold;
+      color: red;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-transform: uppercase;
+    }
+
+    /* Filter Section Flex Layout */
+    .filter-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      width: 50%;
+      /* half width of page */
+      justify-content: space-between;
+    }
+
+    /* Common style for inputs and buttons */
+
+    .filter-section button {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    /* Make specific fields wider */
+    #filter-vehicle,
+    #filter-location {
+      flex: 4;
+      /* double width */
+    }
+
+    #filter-date,
+    .btn-search,
+    .btn-clear {
+      flex: 1;
+      /* normal width */
+    }
+
+    /* Search button (Green) */
+    .btn-search {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-search:hover {
+      background-color: #218838;
+    }
+
+    /* Clear button (Red) */
+    .btn-clear {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-clear:hover {
+      background-color: #c82333;
+    }
+
+
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 2px solid #111010;
+      padding: 12px;
+      text-align: center;
+      vertical-align: top;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+      text-transform: uppercase;
+    }
+
+    .deduction-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .deduction-input-group {
+      display: flex;
+    }
+
+    .deduction-input {
+      flex: 1;
+      padding: 6px;
+      box-sizing: border-box;
+      text-transform: uppercase;
+      border: 1px solid #ccc;
+      border-right: none;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .toggle-btn {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .deduction-container {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      width: 100%;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 999;
+      display: none;
+    }
+
+    .deduction-chip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .deduction-chip:last-child {
+      border-bottom: none;
+    }
+
+    .delete-deduction-btn {
+      background: none;
+      border: none;
+      color: #e91e63;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .delete-row-btn {
+      padding: 5px 10px;
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+
+    }
+
+    .add-row-btn {
+      display: inline-block;
+      padding: 8px 8px;
+      font-size: 10px;
+      font-weight: bold;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      /* Prevent text from breaking into two lines */
+      min-width: 60px;
+      /* Ensure enough width for text */
+      transition: background 0.3s ease;
+    }
+
+    .add-row-btn:hover {
+      background-color: #45a049;
+    }
