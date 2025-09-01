@@ -157,30 +157,59 @@ function attachInputListeners(row) {
 }
 
 function addRow() {
-    const table = document.getElementById("editableTable").querySelector("tbody");
-    const firstRow = table.rows[0];
-    const newRow = firstRow.cloneNode(true);
+    const tableBody = document.getElementById("hisab-table-body");
+    let newRow;
 
-    newRow.querySelectorAll("input").forEach(input => input.value = "");
-    newRow.querySelector(".deduction-wrapper").innerHTML = `
-        <div class="deduction-input-group">
-            <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
-            <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
-        </div>
-        <div class="deduction-container"></div>
-        <input type="hidden" class="deduction-hidden" value="[]">
-    `;
-    newRow.removeAttribute("data-id");
+    if (tableBody.rows.length > 0) {
+        // Clone the first row if it exists
+        const firstRow = tableBody.rows[0];
+        newRow = firstRow.cloneNode(true);
+        // Clear all input values in the new row
+        newRow.querySelectorAll("input").forEach(input => {
+            if (input.type === "hidden") {
+                input.value = "[]";
+            } else {
+                input.value = "";
+            }
+        });
+        // Clear deduction chips
+        const deductionContainer = newRow.querySelector(".deduction-container");
+        if (deductionContainer) deductionContainer.innerHTML = "";
+        newRow.removeAttribute("data-id");
+    } else {
+        // Create a new row from scratch if table is empty
+        newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="date" value="" /></td>
+            <td><input type="text" class="truck_number" value="" /></td>
+            <td><input type="text" class="location" value="" /></td>
+            <td><input type="text" class="weight" value="" oninput="updateWeightDisplay(this)" /></td>
+            <td><input type="number" class="rate" value="" oninput="updateAmount(this)" /></td>
+            <td><input type="number" class="amount" value="" readonly /></td>
+            <td>
+                <div class="deduction-wrapper">
+                    <div class="deduction-input-group">
+                        <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
+                        <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+                    </div>
+                    <div class="deduction-container"></div>
+                    <input type="hidden" class="deduction-hidden" value="[]" />
+                </div>
+            </td>
+            <td><input type="number" class="final" value="" readonly /></td>
+            <td><button class="delete-row-btn" onclick="deleteRow(this)">X</button></td>
+        `;
+    }
 
-    newRow.querySelector(".delete-row-btn").onclick = function () {
-        deleteRow(this);
-    };
+    tableBody.appendChild(newRow);
 
-    table.insertBefore(newRow, table.firstChild);
-
-    attachInputListeners(newRow); // <-- Add this line
-
-    autoSave(newRow);
+    // Attach your existing listeners to the new row
+    if (typeof attachInputListeners === "function") {
+        attachInputListeners(newRow);
+    }
+    if (typeof autoSave === "function") {
+        autoSave(newRow);
+    }
 }
 
 function deleteRow(button) {
