@@ -201,7 +201,8 @@ function addRow() {
         `;
     }
 
-    tableBody.appendChild(newRow);
+    // Insert the new row at the top
+    tableBody.insertBefore(newRow, tableBody.firstChild);
 
     // Attach your existing listeners to the new row
     if (typeof attachInputListeners === "function") {
