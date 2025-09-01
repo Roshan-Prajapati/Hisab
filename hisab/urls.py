@@ -22,6 +22,8 @@ from hisab_app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('', views.entry_view, name='entry_form'),
+    path('login/', views.user_login, name='login'),
+
     path('', views.hisab_table_view, name='hisab_table'),
     path('autosave_entry/', views.autosave_entry, name='autosave_entry'),
     path('delete-entry/', views.delete_entry, name='delete_entry'),

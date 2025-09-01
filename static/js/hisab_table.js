@@ -265,28 +265,69 @@ function deleteRow(button) {
     const row = button.closest("tr");
     const entryId = row.getAttribute("data-id");
 
-    if (entryId) {
-        fetch("/delete-entry/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCookie("csrftoken"),
-            },
-            body: JSON.stringify({ id: entryId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
-                row.remove();
-            } else {
-                alert("Failed to delete entry.");
-            }
-        })
-        .catch(() => alert("Error deleting entry."));
-    } else {
-        // If row is not saved yet, just remove from DOM
-        row.remove();
-    }
+    // Show custom confirmation popup
+    showConfirmPopup("Are you sure you want to delete this entry?", function () {
+        if (entryId) {
+            fetch("/delete-entry/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify({ id: entryId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    row.remove();
+                } else {
+                    alert("Failed to delete entry.");
+                }
+            })
+            .catch(() => alert("Error deleting entry."));
+        } else {
+            // If row is not saved yet, just remove from DOM
+            row.remove();
+        }
+    });
+}
+
+
+function showConfirmPopup(message, onConfirm) {
+    // Create overlay
+    const overlay = document.createElement("div");
+    overlay.className = "popup-overlay";
+
+    // Create popup box
+    const popup = document.createElement("div");
+    popup.className = "popup-box";
+
+    // Message
+    const msg = document.createElement("p");
+    msg.textContent = message;
+
+    // Buttons
+    const btnYes = document.createElement("button");
+    btnYes.textContent = "Yes";
+    btnYes.className = "btn-yes";
+    btnYes.onclick = () => {
+        document.body.removeChild(overlay);
+        onConfirm(); // Run delete
+    };
+
+    const btnNo = document.createElement("button");
+    btnNo.textContent = "No";
+    btnNo.className = "btn-no";
+    btnNo.onclick = () => {
+        document.body.removeChild(overlay);
+    };
+
+    // Append
+    popup.appendChild(msg);
+    popup.appendChild(btnYes);
+    popup.appendChild(btnNo);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
 }
 
 /* ---------------- AutoSave ---------------- */
@@ -335,7 +376,7 @@ function autoSave(row) {
 
 /* ---------------- Init ---------------- */
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("#editableTable tbody tr").forEach(row => {
+    document.querySelectorAll("#hisab-table-body tr").forEach(row => {
         attachInputListeners(row); // <-- Add this line
     });
 

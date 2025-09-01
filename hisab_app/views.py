@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from .forms import EntryForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 from .models import TransportEntry
 from decimal import Decimal
 from datetime import datetime
@@ -16,10 +19,40 @@ from datetime import datetime
 #     form = EntryForm()
 #     return render(request, 'entry_form.html', {'form': form})
 
+def user_login(request):
+    # Set your manual username and password here
+    MANUAL_USERNAME = "sanjeev"
+    MANUAL_PASSWORD = "1234"  # Change this to your desired password
 
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        if username == MANUAL_USERNAME and password == MANUAL_PASSWORD:
+            # Set a session variable to indicate the user is logged in
+            request.session['is_logged_in'] = True
+            return redirect('hisab_table')
+        else:
+            return render(request, "login.html", {"error": "Invalid username or password."})
+    return render(request, "login.html")
+
+def user_logout(request):
+    request.session.flush()
+    return redirect('login')
+
+def is_logged_in(request):
+    return request.session.get('is_logged_in', False)
+
+def login_required_custom(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not is_logged_in(request):
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@login_required_custom
 def hisab_table_view(request):
-    entries = TransportEntry.objects.all()
-    return render(request, 'hisab_table.html', {"entries": entries})
+    entries = TransportEntry.objects.all().order_by('-date')
+    return render(request, "hisab_table.html", {"entries": entries})
 
 
 @csrf_exempt
