@@ -4,7 +4,7 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Editable Table</title>
   <link rel="stylesheet" href="{% static 'css/hisab_table.css' %}">
 
@@ -28,52 +28,55 @@
   </div>
 
   <!-- table section -->
-  <table id="editableTable">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Vehicle No / Driver</th>
-        <th>Location</th>
-        <th>Weight In Tons</th>
-        <th>Rate Per Ton</th>
-        <th>Amount</th>
-        <th>Deductions</th>
-        <th>Final</th>
-        <th style="text-align:center; vertical-align:middle;">
-          <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
-        </th>
+  <div class="table-wrapper">
 
-      </tr>
-    </thead>
-    <tbody id="hisab-table-body">
-      {% for entry in entries %}
-      <tr data-id="{{ entry.id }}">
-        <td><input type="date" value="{{ entry.date|date:'Y-m-d' }}" /></td>
-        <td><input type="text" class="truck_number" value="{{ entry.vehicle_driver }}" /></td>
-        <td><input type="text" class="location" value="{{ entry.location }}" /></td>
-        <td><input type="text" class="weight" value="{{ entry.weight_tons }}" oninput="updateWeightDisplay(this)" />
-        </td>
-        <td><input type="number" class="rate" value="{{ entry.rate_per_ton }}" oninput="updateAmount(this)" /></td>
-        <td><input type="number" class="amount" value="{{ entry.amount }}" readonly /></td>
-        <td>
-          <div class="deduction-wrapper">
-            <div class="deduction-input-group">
-              <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
-              <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+    <table id="editableTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Vehicle No / Driver</th>
+          <th>Location</th>
+          <th>Weight In Tons</th>
+          <th>Rate Per Ton</th>
+          <th>Amount</th>
+          <th>Deductions</th>
+          <th>Final</th>
+          <th style="text-align:center; vertical-align:middle;">
+            <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
+          </th>
+
+        </tr>
+      </thead>
+      <tbody id="hisab-table-body">
+        {% for entry in entries %}
+        <tr data-id="{{ entry.id }}">
+          <td data-label="Date"><input type="date" value="{{ entry.date|date:'Y-m-d' }}" /></td>
+          <td data-label="Vehicle No / Driver"><input type="text" class="truck_number"
+              value="{{ entry.vehicle_driver }}" /></td>
+          <td data-label="Location"><input type="text" class="location" value="{{ entry.location }}" /></td>
+          <td data-label="Weight In Tons"><input type="text" class="weight" value="{{ entry.weight_tons }}"
+              oninput="updateWeightDisplay(this)" /></td>
+          <td data-label="Rate Per Ton"><input type="number" class="rate" value="{{ entry.rate_per_ton }}"
+              oninput="updateAmount(this)" /></td>
+          <td data-label="Amount"><input type="number" class="amount" value="{{ entry.amount }}" readonly /></td>
+          <td data-label="Deductions">
+            <div class="deduction-wrapper">
+              <div class="deduction-input-group">
+                <input type="text" class="deduction-input" onkeydown="handleDeductionKey(event)" placeholder="Enter" />
+                <button class="toggle-btn" onclick="toggleDeductionList(this)">&#9662;</button>
+              </div>
+              <div class="deduction-container"></div>
+              <input type="hidden" class="deduction-hidden" value='{{ entry.deductions|default:"[]" }}' />
             </div>
-            <div class="deduction-container"></div>
-            <!-- hidden field to store DB deductions -->
-            <input type="hidden" class="deduction-hidden" value='{{ entry.deductions|default:"[]" }}' />
-          </div>
-        </td>
+          </td>
+          <td data-label="Final"><input type="number" class="final" value="{{ entry.final_amount }}" readonly /></td>
+          <td data-label="Delete"><button class="delete-row-btn" onclick="deleteRow(this)">X</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
 
-        <td><input type="number" class="final" value="{{ entry.final_amount }}" readonly /></td>
-        <td><button class="delete-row-btn" onclick="deleteRow(this)">X</button></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-
-  </table>
+    </table>
+  </div>
 
 
   <script src="{% static 'js/hisab_table.js' %}"></script>
@@ -84,3 +87,9 @@
 </html>
 
 <!-- select * from hisab_app_transportentry  -->
+<!-- Username (leave blank to use 'lenovo'): roshan
+Email address: prajapatiroshan865@gmail.com
+Password: roshan123 -->
+
+
+

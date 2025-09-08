@@ -61,7 +61,6 @@
     #filter-vehicle,
     #filter-location {
       flex: 4;
-      /* double width */
     }
 
     #filter-date,
@@ -251,4 +250,65 @@
 }
 .popup-box .btn-no {
   background: #e53935;
+}
+
+
+/* Responsive Table: Desktop = normal table, Mobile = stacked cards */
+@media (max-width: 768px) {
+  table#editableTable, 
+  table#editableTable thead, 
+  table#editableTable tbody, 
+  table#editableTable th, 
+  table#editableTable td, 
+  table#editableTable tr {
+    display: block;
+    width: 100%;
+  }
+
+  table#editableTable thead {
+    display: none;
+  }
+
+  table#editableTable tbody tr {
+    margin-bottom: 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    background: #fff;
+    padding: 10px 0;
+  }
+
+  table#editableTable td {
+    position: relative;     
+    padding-left: 48%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    min-height: 36px;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  table#editableTable td:last-child {
+    border-bottom: none;
+  }
+
+  table#editableTable td:before {
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    width: 45%;
+    white-space: nowrap;
+    font-weight: bold;
+    color: #333;
+    font-size: 13px;
+    content: attr(data-label);
+  }
+
+  .add-row-btn {
+    width: 100%;
+    margin: 10px 0;
+  }
 }

@@ -22,7 +22,10 @@ from hisab_app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('', views.entry_view, name='entry_form'),
+    path("signup/", views.user_signup, name="signup"),
     path('login/', views.user_login, name='login'),
+    path('send_otp/', views.send_otp, name='send_otp'),
+
 
     path('', views.hisab_table_view, name='hisab_table'),
     path('autosave_entry/', views.autosave_entry, name='autosave_entry'),
