@@ -5,7 +5,7 @@
 
 <head>
   <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editable Table</title>
+  <title>SANJEEV ROADLINES</title>
   <link rel="stylesheet" href="{% static 'css/hisab_table.css' %}">
 
 </head>
@@ -80,6 +80,27 @@
 
 
   <script src="{% static 'js/hisab_table.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const table = document.getElementById("editableTable");
+  if (!table) return;
+
+  table.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || e.target.tagName === "TEXTAREA" || e.target.closest("button")) return;
+
+    const inputs = [...table.querySelectorAll("input, select, textarea")]
+      .filter(el => !el.disabled && el.type !== "hidden" && !el.readOnly && el.offsetParent !== null);
+
+    const idx = inputs.indexOf(e.target);
+    if (idx > -1 && idx < inputs.length - 1) {
+      e.preventDefault();
+      inputs[idx + 1].focus();
+      inputs[idx + 1].select?.();
+    }
+  });
+});
+</script>
 
 
 </body>
