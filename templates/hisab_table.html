@@ -19,6 +19,8 @@
   </div>
 
   <!-- Filter Section -->
+<div class="top-bar">
+  <!-- Left side filters -->
   <div class="filter-section">
     <input type="date" id="filter-date" placeholder="Date" />
     <input type="text" id="filter-vehicle" placeholder="Vehicle No / Driver" />
@@ -26,6 +28,24 @@
     <button class="btn-search" onclick="applyFilters()">Search</button>
     <button class="btn-clear" onclick="clearFilters()">Clear</button>
   </div>
+
+  <!-- Right side logout -->
+<!-- Logout Button -->
+<a href="{% url 'user_logout' %}" id="logout-btn" class="btn-logout">Logout</a>
+
+<!-- Logout Popup -->
+<div id="logout-popup" class="popup-overlay" style="display: none;">
+  <div class="popup-box">
+    <p>Are you sure you want to logout?</p>
+    <button class="btn-yes" id="confirm-logout">Yes</button>
+    <button class="btn-no" id="cancel-logout">No</button>
+  </div>
+</div>
+
+</div>
+
+
+
 
   <!-- table section -->
   <div class="table-wrapper">
@@ -101,6 +121,33 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.getElementById("logout-btn");
+    const popup = document.getElementById("logout-popup");
+    const confirmBtn = document.getElementById("confirm-logout");
+    const cancelBtn = document.getElementById("cancel-logout");
+
+    // Show popup when logout is clicked
+    logoutBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // stop immediate logout
+      popup.style.display = "flex";
+    });
+
+    // Confirm logout
+    confirmBtn.addEventListener("click", () => {
+      window.location.href = logoutBtn.href;
+    });
+
+    // Cancel logout
+    cancelBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+  });
+</script>
+
+
 
 
 </body>

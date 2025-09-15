@@ -36,6 +36,7 @@
             width: 100%;
             margin-bottom: 10px;
         }
+        
         .btn-otp {
             width: auto;
             padding: 0 18px;
@@ -43,8 +44,21 @@
             white-space: nowrap;
         }
         .btn:hover, .btn-otp:hover {
-            background: #388e3c;
+            background: #fff;
+            color: #388e3c;
+            border: #388e3c solid 2px;
         }
+
+        /* Click effect using :active + animation */
+.btn:active, button:active {
+    animation: clickFlash 1s;
+}
+
+@keyframes clickFlash {
+    0%   { background: rgb(109, 238, 195); color: #fff; }
+    100% { background: #4CAF50; color: #fff; }
+}
+
         #otp-message {
     margin-bottom: 12px;
     text-align: center;

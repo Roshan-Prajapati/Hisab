@@ -38,63 +38,78 @@
       text-transform: uppercase;
     }
 
-    /* Filter Section Flex Layout */
-    .filter-section {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      width: 50%;
-      /* half width of page */
-      justify-content: space-between;
+/* Container for filter + logout */
+.top-bar {
+  display: flex;
+  justify-content: space-between; /* filters on left, logout on right */
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Filter section */
+.filter-section {
+  display: flex;
+  align-items: left;
+  padding-right: 200px;
+  gap: 8px;
+  
+}
+#filter-date {
+      flex: 14;
     }
 
-    /* Common style for inputs and buttons */
-
-    .filter-section button {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+#filter-vehicle {
+      padding-right: 40px;
     }
 
-    /* Make specific fields wider */
-    #filter-vehicle,
     #filter-location {
-      flex: 4;
+      padding-right: 120px;
     }
+   
+/* Common button style */
+.btn-search,
+.btn-clear,
+.btn-logout {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;  /* remove underline if <a> */
+  min-width: 60px;        /* uniform width */
+  transition: background-color 0.3s ease;
+}
 
-    #filter-date,
-    .btn-search,
-    .btn-clear {
-      flex: 1;
-      /* normal width */
-    }
+/* Search button (Green) */
+.btn-search {
+  background-color: #28a745;
+}
+.btn-search:hover {
+  background-color: #218838;
+}
 
-    /* Search button (Green) */
-    .btn-search {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
+/* Clear button (Red) */
+.btn-clear {
+  background-color: #dc3545;
+}
+.btn-clear:hover {
+  background-color: #c82333;
+}
 
-    .btn-search:hover {
-      background-color: #218838;
-    }
-
-    /* Clear button (Red) */
-    .btn-clear {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .btn-clear:hover {
-      background-color: #c82333;
-    }
+/* Logout button (Blue → Red hover) */
+.btn-logout {
+  background-color: #007bff;
+  margin-left: 16px;
+}
+.btn-logout:hover {
+  background-color: #dc3545;
+}
 
 
 

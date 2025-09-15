@@ -24,6 +24,8 @@ urlpatterns = [
     # path('', views.entry_view, name='entry_form'),
     path("signup/", views.user_signup, name="signup"),
     path('login/', views.user_login, name='login'),
+    path("logout/", views.user_logout, name="user_logout"),
+
     path('send_otp/', views.send_otp, name='send_otp'),
 
 
