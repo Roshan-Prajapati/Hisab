@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -122,44 +122,55 @@ def autosave_entry(request):
         try:
             data = json.loads(request.body)
 
-            entry_id = data.get("id")  # If row already exists
+            entry_id = data.get("id")
             date = data.get("date")
             vehicle_driver = data.get("vehicle_driver", "").strip()
             location = data.get("location", "").strip()
-            weight_tons = data.get("weight_tons", "").strip()   # ✅ keep as string
-            try:
-                rate_per_ton = float(data.get("rate_per_ton") or 0)
-            except ValueError:
-                rate_per_ton = 0
-            try:
-                amount = float(data.get("amount") or 0)
-            except ValueError:
-                amount = 0
-            deductions = data.get("deductions", "[]")  # JSON string from frontend
-            try:
-                final_amount = float(data.get("final_amount") or 0)
-            except ValueError:
-                final_amount = 0
+            weight_tons = data.get("weight_tons", "").strip()
 
-            # Parse date if provided
+            # numeric fields
+            def safe_float(val):
+                try:
+                    return float(val) if val not in [None, ""] else 0
+                except ValueError:
+                    return 0
+
+            rate_per_ton = safe_float(data.get("rate_per_ton"))
+            amount = safe_float(data.get("amount"))
+            final_amount = safe_float(data.get("final_amount"))
+
+            # ✅ get deductions from frontend
+            deductions_raw = data.get("deductions", [])
+            if isinstance(deductions_raw, str):
+                try:
+                    new_deductions = json.loads(deductions_raw)
+                except Exception:
+                    new_deductions = []
+            elif isinstance(deductions_raw, list):
+                new_deductions = deductions_raw
+            else:
+                new_deductions = []
+
+            # parse date
             if date:
                 try:
                     date = datetime.strptime(date, "%Y-%m-%d").date()
                 except ValueError:
                     date = None
 
-            if entry_id:  # Update existing entry
-                entry = TransportEntry.objects.get(id=entry_id)
+            if entry_id:  # update existing entry
+                entry = get_object_or_404(TransportEntry, id=entry_id)
+
                 entry.date = date
                 entry.vehicle_driver = vehicle_driver
                 entry.location = location
                 entry.weight_tons = weight_tons
                 entry.rate_per_ton = rate_per_ton
                 entry.amount = amount
-                entry.deductions = deductions
+                entry.deductions = json.dumps(new_deductions)  # ✅ overwrite instead of merge
                 entry.final_amount = final_amount
                 entry.save()
-            else:  # Create new entry
+            else:  # create new entry
                 entry = TransportEntry.objects.create(
                     date=date,
                     vehicle_driver=vehicle_driver,
@@ -167,17 +178,19 @@ def autosave_entry(request):
                     weight_tons=weight_tons,
                     rate_per_ton=rate_per_ton,
                     amount=amount,
-                    deductions=deductions,
+                    deductions=json.dumps(new_deductions),
                     final_amount=final_amount,
                 )
 
             return JsonResponse({"success": True, "id": entry.id})
 
         except Exception as e:
-            print("Autosave error:", e)  # Add this line for debugging
+            print("Autosave error:", e)
             return JsonResponse({"success": False, "error": str(e)}, status=400)
 
     return JsonResponse({"success": False, "message": "Invalid request"}, status=400)
+
+
 
 @csrf_exempt
 def delete_entry(request):

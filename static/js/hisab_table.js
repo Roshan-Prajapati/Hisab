@@ -110,7 +110,7 @@ function handleDeductionKey(event) {
     }
 }
 
-function addDeductionChip(container, text) {
+function addDeductionChip(container, text, skipSave = false) {
     const chip = document.createElement("div");
     chip.className = "deduction-chip";
     chip.setAttribute("data-value", text);
@@ -154,7 +154,11 @@ function addDeductionChip(container, text) {
 
     updateFinal(container.closest("tr"));
     syncHidden(container);
-    autoSave(container.closest("tr"));
+
+    // ✅ only autosave when not skipping
+    if (!skipSave) {
+        autoSave(container.closest("tr"));
+    }
 }
 
 function updateChipValue(chip, newValue) {
@@ -339,22 +343,24 @@ function autoSave(row) {
         row.querySelectorAll(".deduction-chip")
     ).map(chip => chip.dataset.value);
 
-    // ✅ also update the hidden input so it stays in sync
+    console.log("Saving deductions:", deductionsArray); // 🔍 Debug log
+
+    // ✅ keep hidden input synced
     const hiddenInput = row.querySelector(".deduction-hidden");
     if (hiddenInput) {
         hiddenInput.value = JSON.stringify(deductionsArray);
     }
 
     const data = {
-        id: entryId,
-        date: row.querySelector('input[type="date"]').value,
-        vehicle_driver: row.querySelector(".truck_number")?.value.trim(),
-        location: row.querySelector(".location")?.value.trim(),
-        weight_tons: row.querySelector(".weight").value || "",   // keep original string
+        id: entryId || null,
+        date: row.querySelector('input[type="date"]').value || null,
+        vehicle_driver: row.querySelector(".truck_number")?.value.trim() || "",
+        location: row.querySelector(".location")?.value.trim() || "",
+        weight_tons: row.querySelector(".weight").value || "",
         rate_per_ton: row.querySelector(".rate").value || "",
         amount: row.querySelector(".amount").value || "",
         final_amount: row.querySelector(".final").value || "",
-        deductions: JSON.stringify(deductionsArray), // ✅ now properly synced
+        deductions: deductionsArray, // ✅ send as array
     };
 
     fetch("/autosave_entry/", {
@@ -365,39 +371,49 @@ function autoSave(row) {
         },
         body: JSON.stringify(data),
     })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success && result.id) {
-                row.dataset.id = result.id;
-            }
-        })
-        .catch(err => console.error("Autosave error:", err));
+    .then(res => res.json())
+    .then(result => {
+        if (result.success && result.id) {
+            row.dataset.id = result.id;
+        }
+    })
+    .catch(err => console.error("Autosave error:", err));
 }
 
+
+
 /* ---------------- Init ---------------- */
+let isInitializing = true;  // global flag
+
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("#hisab-table-body tr").forEach(row => {
-        attachInputListeners(row); // <-- Add this line
+        attachInputListeners(row);
     });
 
     document.querySelectorAll(".deduction-hidden").forEach(hidden => {
-        let deductions;
-        try {
-            deductions = JSON.parse(hidden.value);
-        } catch (e) {
-            deductions = [];
-        }
+    let deductions;
+    try {
+        deductions = JSON.parse(hidden.value);
+    } catch (e) {
+        deductions = [];
+    }
 
-        const wrapper = hidden.closest(".deduction-wrapper");
-        const container = wrapper.querySelector(".deduction-container");
+    const wrapper = hidden.closest(".deduction-wrapper");
+    const container = wrapper.querySelector(".deduction-container");
 
-        deductions.forEach(text => {
-            addDeductionChip(container, text);
-        });
-
-        updateFinal(wrapper.closest("tr"));
+    // ✅ build chips but skip autosave during init
+    deductions.forEach(text => {
+        addDeductionChip(container, text, true); // true = skipSave
     });
+
+    updateFinal(wrapper.closest("tr"));
+    syncHidden(container); // ✅ make sure hidden is updated
 });
+
+
+    isInitializing = false; // ✅ turn off after page load
+});
+
 
 function syncHidden(container) {
     const wrapper = container.closest(".deduction-wrapper");
