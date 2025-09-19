@@ -196,7 +196,10 @@ function updateChipValue(chip, newValue) {
 
 function toggleDeductionList(button) {
     const container = button.closest(".deduction-wrapper").querySelector(".deduction-container");
-    container.style.display = container.style.display === "block" ? "none" : "block";
+    if (!container) return;
+
+    const isCurrentlyOpen = window.getComputedStyle(container).display !== 'none';
+    container.style.display = isCurrentlyOpen ? 'none' : 'block';
 }
 
 /* ---------------- Row Management ---------------- */
@@ -414,6 +417,18 @@ document.addEventListener("DOMContentLoaded", function () {
     isInitializing = false; // ✅ turn off after page load
 });
 
+// Close open deduction dropdowns when clicking outside
+document.addEventListener("click", function (event) {
+    document.querySelectorAll(".deduction-wrapper").forEach(wrapper => {
+        const container = wrapper.querySelector(".deduction-container");
+        if (!container) return;
+
+        const isOpen = window.getComputedStyle(container).display !== 'none';
+        if (isOpen && !wrapper.contains(event.target)) {
+            container.style.display = "none";
+        }
+    });
+});
 
 function syncHidden(container) {
     const wrapper = container.closest(".deduction-wrapper");

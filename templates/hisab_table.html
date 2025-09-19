@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!table) return;
 
   table.addEventListener("keydown", e => {
-    if (e.key !== "Enter" || e.target.tagName === "TEXTAREA" || e.target.closest("button")) return;
+    if (e.key !== "Enter" || e.target.tagName === "TEXTAREA" || e.target.closest("button") || e.target.classList.contains("deduction-input")) return; // ✅ NEW: skip deduction input
 
     const inputs = [...table.querySelectorAll("input, select, textarea")]
       .filter(el => !el.disabled && el.type !== "hidden" && !el.readOnly && el.offsetParent !== null);
